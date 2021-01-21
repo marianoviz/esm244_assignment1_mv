@@ -1,0 +1,109 @@
+---
+title: "a1_task1_viz_mariano"
+author: "Mariano Viz"
+date: "21/01/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(here)
+library(patchwork)
+library(lubridate)
+
+```
+
+### Summary
+
+
+
+
+
+
+
+
+```{r}
+#Read in data (sierra_amphibians.xlsx)
+
+amphibians_data <- read_excel(here("data", "sierra_amphibians.xlsx"))
+
+```
+
+
+
+
+```{r}
+#Data wrangling:
+#convert $survey_date to class date and pull the year to new col ($survey_year)
+#filter to only keep Rana muscosa (RAMU) and exclude "EggMass" from $amphibian life stage
+
+ramu_counts_year <- amphibians_data %>% 
+  mutate(survey_date = ymd(survey_date)) %>% 
+  mutate(survey_year = year(survey_date)) %>% 
+  filter(amphibian_species == "RAMU", amphibian_life_stage != "EggMass") %>% 
+  count(survey_year, amphibian_life_stage, wt = amphibian_number)
+
+
+#Data Viz
+
+ramu_year_plot <- ggplot(data = ramu_counts_year, aes(x = survey_year, y = n)) +
+  geom_col() +
+  facet_wrap(~amphibian_life_stage, scales = "free")
+
+ramu_year_plot
+```
+
+
+
+
+```{r}
+#Data wrangling:
+ramu_counts_lake <- amphibians_data %>% 
+  filter(amphibian_species == "RAMU", amphibian_life_stage %in% c("Adult", "SubAdult")) %>% 
+  count(lake_id, wt = amphibian_number) %>% 
+  slice_max(n, n = 5) %>% 
+  mutate(lake_id = paste0('Lake ', lake_id)) %>% 
+  mutate(lake_id = fct_reorder(lake_id, n))
+
+
+#Data Viz:
+ramu_lake_plot <- ggplot(data = ramu_counts_lake, aes(x = lake_id, y = n)) +
+  geom_col()
+
+ramu_lake_plot
+```
+
+
+
+
+
+
+```{r}
+#Making a compound figure 
+
+ramu_year_plot / ramu_lake_plot & theme_minimal()
+
+```
+ 
+
+**Figure 1.** Data: Knapp et al. (2020).
+
+
+
+
+
+
+
+### Citation
+
+Knapp, R.A., C. Pavelka, E.E. Hegeman, and T.C. Smith. 2020. The Sierra Lakes Inventory Project: Non-Native fish and community composition of lakes and ponds in the Sierra Nevada, California ver 2. Environmental Data Initiative.
+https://doi.org/10.6073/pasta/d835832d7fd00d9e4466e44eea87fab3
+
+
+
+
+
+
