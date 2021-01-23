@@ -1,5 +1,5 @@
 ---
-title: "a1_task1_viz_mariano"
+title: "Mountain yellow-legged frog (Rana muscosa) count in Sierra Nevada, California (1995 - 2002)"
 author: "Mariano Viz"
 date: "21/01/2021"
 output: html_document
@@ -13,21 +13,17 @@ library(janitor)
 library(here)
 library(patchwork)
 library(lubridate)
+library(scales)
 
 ```
 
 ### Summary
-
-
-
-
-
+In this report, I explore the abundance of the mountain yellow-legged frog (Rana muscosa) in the Sierra Nevada ecosystem for the period 1995-2002. Specifically, I examine the total number of adult, subadult, and tadpole observed in the entire study region by year and the total counts of combined adult and subadult observed in the 5 lakes with the greatest total counts. Results are presented in a single compound figure. Data were extracted from Knapp et al. (2020).
 
 
 
 ```{r}
 #Read in data (sierra_amphibians.xlsx)
-
 amphibians_data <- read_excel(here("data", "sierra_amphibians.xlsx"))
 
 ```
@@ -36,31 +32,33 @@ amphibians_data <- read_excel(here("data", "sierra_amphibians.xlsx"))
 
 
 ```{r}
-#Data wrangling:
-#convert $survey_date to class date and pull the year to new col ($survey_year)
-#filter to only keep Rana muscosa (RAMU) and exclude "EggMass" from $amphibian life stage
-
+#Data wrangling: counts of Rana muscosa (RAMU) Adult, SubAdult, and Tadpole observed in the entire study region by year
 ramu_counts_year <- amphibians_data %>% 
-  mutate(survey_date = ymd(survey_date)) %>% 
-  mutate(survey_year = year(survey_date)) %>% 
+  mutate(survey_date = ymd(survey_date)) %>% #convert $survey_date to class date
+  mutate(survey_year = year(survey_date)) %>% #pull year to new col ($survey_year)
   filter(amphibian_species == "RAMU", amphibian_life_stage != "EggMass") %>% 
   count(survey_year, amphibian_life_stage, wt = amphibian_number)
 
 
-#Data Viz
-
+#Data Viz (stored to make a compound figure): 
 ramu_year_plot <- ggplot(data = ramu_counts_year, aes(x = survey_year, y = n)) +
   geom_col() +
-  facet_wrap(~amphibian_life_stage, scales = "free")
+  facet_wrap(~amphibian_life_stage, scales = "free")+
+  scale_y_continuous(labels = scales::label_number_si())+
+  scale_x_continuous(breaks=c(1995, 1996, 1997, 2000, 2001, 2002))+
+  theme_minimal()+
+  labs(x = "Year",
+       title = "(A) Different life-stage counts by year")+
+  theme(axis.text.x = element_text(angle = 90))
 
-ramu_year_plot
+
 ```
 
 
 
 
 ```{r}
-#Data wrangling:
+#Data wrangling: total counts of Rana muscosa (RAMU) combined Adult and SubAdult and selection of the 5 lakes with the greatest total counts
 ramu_counts_lake <- amphibians_data %>% 
   filter(amphibian_species == "RAMU", amphibian_life_stage %in% c("Adult", "SubAdult")) %>% 
   count(lake_id, wt = amphibian_number) %>% 
@@ -69,11 +67,15 @@ ramu_counts_lake <- amphibians_data %>%
   mutate(lake_id = fct_reorder(lake_id, n))
 
 
-#Data Viz:
+#Data Viz (stored to make a compound figure): 
 ramu_lake_plot <- ggplot(data = ramu_counts_lake, aes(x = lake_id, y = n)) +
-  geom_col()
+  geom_col()+
+  scale_y_continuous(labels = scales::comma, position = "right")+
+  theme_minimal()+
+  labs(x = "Lake ID",
+       title = "(B) Adult and Subadult counts by Lake")
 
-ramu_lake_plot
+
 ```
 
 
@@ -82,14 +84,18 @@ ramu_lake_plot
 
 
 ```{r}
-#Making a compound figure 
+#Compound figure (patchwork):
+design <- "1111111
+22222##
+22222##
+22222##"
 
-ramu_year_plot / ramu_lake_plot & theme_minimal()
+ramu_year_plot / ramu_lake_plot + plot_layout(design = design) & labs(y = "Count")
 
 ```
  
 
-**Figure 1.** Data: Knapp et al. (2020).
+**Figure 1.** Mountain yellow-legged frog (Rana muscosa) total number of adult, subadult, and tadpole observed in the entire study region by year (A) and total counts of combined adult and subadult observed in the 5 lakes with the greatest total counts (B). Data: Knapp et al. (2020).
 
 
 
