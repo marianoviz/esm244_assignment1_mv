@@ -1,0 +1,93 @@
+---
+title: "a1_task2_viz_mariano"
+author: "Mariano Viz"
+date: "21/01/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(ggfortify)
+
+
+```
+
+### Introduction
+
+Summary (3-4 sent): data description (citation) and what it's been explored
+
+
+
+
+Anotate code!
+
+```{r}
+#Read in data and update the column names to lower snake case 
+nutrients_data <- read_csv(here("data", "usda_nutrients.csv")) %>% 
+  clean_names()
+
+```
+
+
+
+
+```{r}
+#
+meat_macronut_pca <- nutrients_data %>% 
+  filter(food_group %in% c("Beef Products", "Pork Products", "Poultry Products")) %>% 
+  select(energy_kcal, ends_with("_g"), -c(fiber_g, sugar_g)) %>% 
+  scale() %>% 
+  prcomp()
+
+#
+meat_macronut <- nutrients_data %>%
+  filter(food_group %in% c("Beef Products", "Pork Products", "Poultry Products"))
+  
+#
+autoplot(meat_macronut_pca, 
+         data = meat_macronut,
+         colour = 'food_group',
+         shape = 'food_group',
+         size = 1.5,
+         alpha = 0.5,
+         loadings = TRUE,
+         loadings.label = TRUE,
+         loadings.colour = "black",
+         loadings.label.colour = "black",
+         loadings.label.hjust = -0.2,
+         loadings.label.vjust = 0.3) +
+  scale_color_manual(values = c("orange1","dodgerblue2","forestgreen")) +
+  scale_fill_manual(values = c("orange1","dodgerblue2","forestgreen")) +
+  scale_shape_manual(values = c (20,15,17)) +
+  labs(shape = "Food Group", color = "Food Group")+
+  theme_minimal()+
+  theme(legend.position = c(0.15, 0.82), legend.direction = "vertical")
+                              
+                            
+
+
+```
+
+**Figure 1.**  Biplot of the PCA ordination performed for the variables protein, carbohydrate, fat, and energy content in three different food groups. Orange dots represent observations for Beef Products, blue squares for Pork Products, and green triangles for Poultry Products. Their position reflects the score of each observation based on the principal components (PC1 and PC2). Distance between observations approximate the Euclidean distance and allow assessing similarity in multivariate space and identifying multivariate groups and outliers. Arrows indicate the loading of variables for the principal components (PC1 and PC2).Their length indicates variance in the PC direction and the angle between them shows variables correlation. Data USDA (2019).
+
+
+
+### Summary
+
+Major takeaways from the biplot
+
+
+### Citation:
+U.S. Department of Agriculture, Agricultural Research Service. FoodData Central, 2019. fdc.nal.usda.gov
+
+
+
+
+
+
+
+
+
