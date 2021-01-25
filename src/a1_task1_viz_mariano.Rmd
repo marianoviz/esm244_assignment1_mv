@@ -70,7 +70,7 @@ ramu_counts_lake <- amphibians_data %>%
 #Data Viz (stored to make a compound figure): 
 ramu_lake_plot <- ggplot(data = ramu_counts_lake, aes(x = lake_id, y = n)) +
   geom_col()+
-  scale_y_continuous(labels = scales::comma, position = "right")+
+  scale_y_continuous(labels = scales::comma)+
   theme_minimal()+
   labs(x = "Lake ID",
        title = "(B) Adult and Subadult counts by Lake")
@@ -86,6 +86,7 @@ ramu_lake_plot <- ggplot(data = ramu_counts_lake, aes(x = lake_id, y = n)) +
 ```{r}
 #Compound figure (patchwork):
 design <- "1111111
+1111111
 22222##
 22222##
 22222##"
